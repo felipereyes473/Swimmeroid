@@ -44,7 +44,7 @@ typedef enum {
 static sw_state state;
 
 static void init_window(void){
-	window = SDL_CreateWindow("Swimmeroid", WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_ALWAYS_ON_TOP | SDL_WINDOW_TRANSPARENT | SDL_WINDOW_BORDERLESS);
+	window = SDL_CreateWindow("Swimmeroid", WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALWAYS_ON_TOP | SDL_WINDOW_TRANSPARENT | SDL_WINDOW_BORDERLESS);
 	renderer = SDL_CreateRenderer(window, NULL);
 	SDL_SetRenderLogicalPresentation(renderer, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_LOGICAL_PRESENTATION_LETTERBOX);
 	SDL_RenderClear(renderer);
@@ -53,6 +53,9 @@ static void init_window(void){
 static SDL_Texture* load_texture(const char* file_path) {
 	SDL_Surface* tmp_surface = SDL_LoadPNG(file_path);
 	SDL_Texture* tmp_texture = SDL_CreateTextureFromSurface(renderer, tmp_surface);
+	if(!tmp_surface){
+		SDL_Log("[ERROR] surface not created in load_texture method %s", SDL_GetError());
+	}
 	SDL_DestroySurface(tmp_surface);
 	return tmp_texture;
 }
@@ -192,7 +195,7 @@ static SDL_Texture * create_texture_for_string(const char* message, SDL_Color co
 static void load_file_dropped(const char* file_path){
 	char* file_path_includes_png = SDL_strstr(file_path, ".png");
 	if(!file_path_includes_png){
-		SDL_Log("files not a png file");
+		SDL_Log("file not a png file");
 	} else {
 		init_avatar_asset(file_path);
 	}
@@ -236,6 +239,14 @@ static void update_based_on_state(sw_state state){
 			break;
 		case DONE:
 			break;
+	}
+}
+
+static void file_dialog_callback(void *userdata, const char * const *filelist, int filter){
+	(void)(userdata);
+	(void)(filter);
+	if(filelist[0]){
+		load_file_dropped(filelist[0]);
 	}
 }
 
@@ -292,6 +303,17 @@ int main(int argc, char* argv[]){
 			if(SDL_EVENT_DROP_FILE == event.type){
 				load_file_dropped(event.drop.data);
 				SDL_Log("new file droped!");
+			}
+			if(SDL_EVENT_MOUSE_BUTTON_DOWN == event.type){
+				if(state == STARTING){
+					SDL_DialogFileFilter png_filter[1];
+					png_filter[0] = (SDL_DialogFileFilter){
+						.name = "only-png",
+						.pattern = ".png"
+					};
+					SDL_ShowOpenFileDialog(&file_dialog_callback, NULL, window, 
+							png_filter, 1, NULL, false);
+				}
 			}
 		}
 		SDL_RenderPresent(renderer);
