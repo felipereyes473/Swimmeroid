@@ -125,9 +125,9 @@ static void display_sprite_setup(void){
 	clear_opaque();
 	char * message;
 	if(is_silent_mode_defined){
-		message = "pick sprite normal mode (silent)";
-	} else {
 		message = "pick sprite normal mode (sound)";
+	} else {
+		message = "pick sprite normal mode (silent)";
 	}
 	SDL_Texture* instruction_texture = create_texture_for_string(message, WHITE_COLOR);
 	SDL_FRect dst;
@@ -164,13 +164,13 @@ static void display_swimmeroid(){
 
 static void init_font(void){
 	if(!TTF_Init()){
-		SDL_Log("couldnt init truetype fonts %s", SDL_GetError());
+		SDL_Log("[ERROR] couldnt init truetype fonts %s", SDL_GetError());
 	}
 	font = TTF_OpenFont(TTF_FILE_NAME, TTF_SIZE);
 	SDL_Color color = {.r = 255, .g = 255, .b = 255, .a = SDL_ALPHA_OPAQUE};
 	text = create_texture_for_string("Welcome to Swimmeroid!", color);
 	if(!text){
-		SDL_Log("ye we really succ %s", SDL_GetError());
+		SDL_Log("[ERROR] ye we really succ %s", SDL_GetError());
 	}
 }
 
@@ -195,7 +195,7 @@ static SDL_Texture * create_texture_for_string(const char* message, SDL_Color co
 static void load_file_dropped(const char* file_path){
 	char* file_path_includes_png = SDL_strstr(file_path, ".png");
 	if(!file_path_includes_png){
-		SDL_Log("file not a png file");
+		SDL_Log("[INFO] file not a png file");
 	} else {
 		init_avatar_asset(file_path);
 	}
@@ -205,7 +205,7 @@ static void load_file_dropped(const char* file_path){
 static void handle_key_press(unsigned long key){
 	switch(key){
 		case SDLK_RETURN:
-			SDL_Log("return key pressed");
+			/* SDL_Log("return key pressed"); */
 			if(state == SETUP){
 				if(!is_silent_mode_defined) {
 					sprite_face_size.x -= SPRITE_SETUP_PADDING;
@@ -302,7 +302,6 @@ int main(int argc, char* argv[]){
 			}
 			if(SDL_EVENT_DROP_FILE == event.type){
 				load_file_dropped(event.drop.data);
-				SDL_Log("new file droped!");
 			}
 			if(SDL_EVENT_MOUSE_BUTTON_DOWN == event.type){
 				if(state == STARTING){
@@ -322,4 +321,5 @@ int main(int argc, char* argv[]){
 	SDL_DestroyTexture(text);
 	TTF_CloseFont(font);
 	TTF_Quit();
+	SDL_Log("[INFO] save exit. goodbye.");
 }
